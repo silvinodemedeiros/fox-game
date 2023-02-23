@@ -11,15 +11,20 @@ public class Fox : MonoBehaviour
     // ground check
     [SerializeField] bool isGrounded = false; 
     [SerializeField] Transform groundCheckCollider;
+    [SerializeField] float groundCheckRadius = 0.1f;
     [SerializeField] LayerMask groundLayer;
 
-    // moving variables
-    float horizontalValue = 0;
+    // jumping
+    float jumpPower = 30.0f;
+    bool jumpStart = false;
+
+    // moving
+    float horizontalInput = 0;
     int scaleConstant = 4;
 
-    [SerializeField] float speed = 3f;
+    float speed = 1f;
     int speedConstant = 50;
-    float speedMultiplier = 2.0f;
+    float speedMultiplier = 1.75f;
     bool isRunning = false;
 
     void Awake()
@@ -31,31 +36,54 @@ public class Fox : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        horizontalValue = Input.GetAxisRaw("Horizontal");
-        isRunning = Input.GetKey(KeyCode.LeftShift);
+        horizontalInput = Input.GetAxisRaw("Horizontal");
+        isRunning = Input.GetKey(KeyCode.RightShift);
+
+        // jump input
+        if (Input.GetButtonDown("Jump")) {
+            jumpStart = true;
+        } else if (Input.GetButtonUp("Jump")) {
+            jumpStart = false;
+        }
     }
 
     void FixedUpdate()
     {
         GroundCheck();
-        Move(horizontalValue);
+        Move(horizontalInput, jumpStart);
     }
 
     void GroundCheck()
     {
         isGrounded = false;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheckCollider.position, 0.2f, groundLayer);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(
+            groundCheckCollider.position,
+            groundCheckRadius,
+            groundLayer
+        );
 
         if (colliders.Length > 0) {
             isGrounded = true;
         }
     }
 
-    void Move(float direction) {
+    void Move(float direction, bool jumpStartFlag) {
+
+        #region Jump Check
+        if (isGrounded && jumpStartFlag) {
+            // clean up variables of interest
+            isGrounded = false;
+            jumpStart = false;
+
+            rb.AddForce(new Vector2(0f, jumpPower), ForceMode2D.Impulse);
+        }
+        #endregion
+
+        #region Move and Run
         float xVal = direction * speed * speedConstant * Time.fixedDeltaTime;
         xVal *= isRunning ? speedMultiplier : 1;
 
-        rb.velocity = new Vector2(xVal, rb.velocity.y);
+        rb.AddForce(new Vector2(xVal, 0f), ForceMode2D.Impulse);
 
         // flip the sprite with transform.localScale
         if (direction != 0) {
@@ -64,5 +92,8 @@ public class Fox : MonoBehaviour
         }
         
         anim.SetFloat("xVelocity", Mathf.Abs(rb.velocity.x));
+        #endregion
     }
+
+    
 }
