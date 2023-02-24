@@ -9,7 +9,7 @@ public class Fox : MonoBehaviour
     Animator anim;
 
     // ground check
-    [SerializeField] bool isGrounded = false; 
+    bool isGrounded = false; 
     [SerializeField] Transform groundCheckCollider;
     [SerializeField] float groundCheckRadius = 0.1f;
     [SerializeField] LayerMask groundLayer;
@@ -17,6 +17,10 @@ public class Fox : MonoBehaviour
     // jumping
     float jumpPower = 30.0f;
     bool jumpStart = false;
+    
+    // crouching
+    [SerializeField] Transform overheadCheckCollider;
+    bool isCrouching = false;
 
     // moving
     float horizontalInput = 0;
@@ -39,11 +43,18 @@ public class Fox : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         isRunning = Input.GetKey(KeyCode.RightShift);
 
-        // jump input
+        // jump
         if (Input.GetButtonDown("Jump")) {
             jumpStart = true;
         } else if (Input.GetButtonUp("Jump")) {
             jumpStart = false;
+        }
+
+        // crouch
+        if (Input.GetButtonDown("Crouch")) {
+            isCrouching = true;
+        } else if (Input.GetButtonUp("Crouch")) {
+            isCrouching = false;
         }
     }
 
@@ -69,13 +80,17 @@ public class Fox : MonoBehaviour
 
     void Move(float direction, bool jumpStartFlag) {
 
-        #region Jump Check
-        if (isGrounded && jumpStartFlag) {
-            // clean up variables of interest
-            isGrounded = false;
-            jumpStart = false;
+        #region Jump & Crouch
+        if (isGrounded) {
+            if (jumpStartFlag) {
+                // clean up variables of interest
+                isGrounded = false;
+                jumpStart = false;
 
-            rb.AddForce(new Vector2(0f, jumpPower), ForceMode2D.Impulse);
+                rb.AddForce(new Vector2(0f, jumpPower), ForceMode2D.Impulse);
+            } else if (isCrouching) {
+
+            }
         }
         #endregion
 
