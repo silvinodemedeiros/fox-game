@@ -21,6 +21,7 @@ public class Fox : MonoBehaviour
     // crouching
     [SerializeField] Collider2D standingCollider;
     [SerializeField] bool isCrouching = false;
+    float crouchSpeedMultiplier = 0.5f;
 
     // moving
     float horizontalInput = 0;
@@ -97,7 +98,13 @@ public class Fox : MonoBehaviour
 
         #region Move and Run
         float xVal = direction * speed * speedConstant * Time.fixedDeltaTime;
-        xVal *= isRunning ? speedMultiplier : 1;
+
+        // generates final multiplier based on crouching/running state
+        float crouchingMultiplier = isCrouching ? crouchSpeedMultiplier : 1;
+        float runningMultiplier = isRunning && !isCrouching ? speedMultiplier : 1;
+        float movementMultiplier = crouchingMultiplier * runningMultiplier;
+
+        xVal *= movementMultiplier;
 
         rb.AddForce(new Vector2(xVal, 0f), ForceMode2D.Impulse);
 
