@@ -19,8 +19,8 @@ public class Fox : MonoBehaviour
     bool jumpStart = false;
     
     // crouching
-    [SerializeField] Transform overheadCheckCollider;
-    bool isCrouching = false;
+    [SerializeField] Collider2D standingCollider;
+    [SerializeField] bool isCrouching = false;
 
     // moving
     float horizontalInput = 0;
@@ -61,7 +61,7 @@ public class Fox : MonoBehaviour
     void FixedUpdate()
     {
         GroundCheck();
-        Move(horizontalInput, jumpStart);
+        Move(horizontalInput, jumpStart, isCrouching);
     }
 
     void GroundCheck()
@@ -78,18 +78,19 @@ public class Fox : MonoBehaviour
         }
     }
 
-    void Move(float direction, bool jumpStartFlag) {
+    void Move(float direction, bool JUMP, bool CROUCHING) {
 
         #region Jump & Crouch
         if (isGrounded) {
-            if (jumpStartFlag) {
+
+            standingCollider.enabled = !CROUCHING;
+            
+            if (JUMP) {
                 // clean up variables of interest
                 isGrounded = false;
                 jumpStart = false;
 
                 rb.AddForce(new Vector2(0f, jumpPower), ForceMode2D.Impulse);
-            } else if (isCrouching) {
-
             }
         }
         #endregion
