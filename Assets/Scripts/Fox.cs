@@ -20,6 +20,8 @@ public class Fox : MonoBehaviour
     
     // crouching
     [SerializeField] Collider2D standingCollider;
+    [SerializeField] Transform overheadCheckCollider;
+    [SerializeField] float overheadCheckRadius = 0.1f;
     [SerializeField] bool isCrouching = false;
     float crouchSpeedMultiplier = 0.5f;
 
@@ -82,6 +84,14 @@ public class Fox : MonoBehaviour
     void Move(float direction, bool JUMP, bool CROUCHING) {
 
         #region Jump & Crouch
+
+        // check overhead before stand up
+        if (!isCrouching) {
+            if (Physics2D.OverlapCircle(overheadCheckCollider.position, overheadCheckRadius, groundLayer)) {
+                CROUCHING = true;
+            }
+        }
+
         if (isGrounded) {
 
             standingCollider.enabled = !CROUCHING;
@@ -94,14 +104,16 @@ public class Fox : MonoBehaviour
                 rb.AddForce(new Vector2(0f, jumpPower), ForceMode2D.Impulse);
             }
         }
+
+        anim.SetBool("isCrouching", CROUCHING);
         #endregion
 
         #region Move and Run
         float xVal = direction * speed * speedConstant * Time.fixedDeltaTime;
 
         // generates final multiplier based on crouching/running state
-        float crouchingMultiplier = isCrouching ? crouchSpeedMultiplier : 1;
-        float runningMultiplier = isRunning && !isCrouching ? speedMultiplier : 1;
+        float crouchingMultiplier = CROUCHING ? crouchSpeedMultiplier : 1;
+        float runningMultiplier = isRunning && !CROUCHING ? speedMultiplier : 1;
         float movementMultiplier = crouchingMultiplier * runningMultiplier;
 
         xVal *= movementMultiplier;
